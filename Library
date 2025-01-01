@@ -1,0 +1,180 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+namespace LibrarySystem
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Library library = new Library();
+            library.LoadBooks();
+            bool exit = false;
+
+            while (!exit)
+            {
+                Console.Clear();
+                Console.WriteLine("Library System");
+                Console.WriteLine("1. View All Books");
+                Console.WriteLine("2. Add a New Book");
+                Console.WriteLine("3. Borrow a Book");
+                Console.WriteLine("4. Return a Book");
+                Console.WriteLine("5. Exit");
+                Console.Write("Choose an option: ");
+                string choice = Console.ReadLine();
+
+                try
+                {
+                    switch (choice)
+                    {
+                        case "1":
+                            library.ViewAllBooks();
+                            break;
+                        case "2":
+                            library.AddBook();
+                            break;
+                        case "3":
+                            library.BorrowBook();
+                            break;
+                        case "4":
+                            library.ReturnBook();
+                            break;
+                        case "5":
+                            exit = true;
+                            break;
+                        default:
+                            Console.WriteLine("Invalid option. Please try again.");
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurred: {ex.Message}");
+                }
+
+                Console.WriteLine("\nPress any key to continue...");
+                Console.ReadKey();
+            }
+        }
+    }
+
+    class Library
+    {
+        private List<Book> books = new List<Book>();
+        private const string FilePath = "books.txt";
+
+        public Library()
+        {
+            // Initialize with some sample books
+            books.Add(new Book("The Great Gatsby", "F. Scott Fitzgerald", false));
+            books.Add(new Book("1984", "George Orwell", false));
+            books.Add(new Book("Moby Dick", "Herman Melville", false));
+        }
+
+        public void LoadBooks()
+        {
+            // Load books from file if exists
+            if (File.Exists(FilePath))
+            {
+                var lines = File.ReadAllLines(FilePath);
+                foreach (var line in lines)
+                {
+                    var bookData = line.Split('|');
+                    if (bookData.Length == 3)
+                    {
+                        bool isBorrowed = bool.Parse(bookData[2]);
+                        books.Add(new Book(bookData[0], bookData[1], isBorrowed));
+                    }
+                }
+            }
+        }
+
+        public void SaveBooks()
+        {
+            // Save books to file
+            var bookLines = books.Select(b => $"{b.Title}|{b.Author}|{b.IsBorrowed}");
+            File.WriteAllLines(FilePath, bookLines);
+        }
+
+        public void ViewAllBooks()
+        {
+            var availableBooks = books.Where(b => !b.IsBorrowed).ToList();
+            Console.WriteLine("\nAvailable Books:");
+            foreach (var book in availableBooks)
+            {
+                Console.WriteLine(book);
+            }
+        }
+
+        public void AddBook()
+        {
+            Console.Write("\nEnter the book title: ");
+            string title = Console.ReadLine();
+            Console.Write("Enter the author's name: ");
+            string author = Console.ReadLine();
+
+            var newBook = new Book(title, author, false);
+            books.Add(newBook);
+            SaveBooks();
+
+            Console.WriteLine("\nBook added successfully!");
+        }
+
+        public void BorrowBook()
+        {
+            Console.Write("\nEnter the book title to borrow: ");
+            string title = Console.ReadLine();
+
+            var bookToBorrow = books.FirstOrDefault(b => b.Title.Equals(title, StringComparison.OrdinalIgnoreCase) && !b.IsBorrowed);
+            if (bookToBorrow != null)
+            {
+                bookToBorrow.IsBorrowed = true;
+                SaveBooks();
+                Console.WriteLine($"\nYou have borrowed \"{bookToBorrow.Title}\".");
+            }
+            else
+            {
+                Console.WriteLine("\nSorry, the book is either unavailable or already borrowed.");
+            }
+        }
+
+        public void ReturnBook()
+        {
+            Console.Write("\nEnter the book title to return: ");
+            string title = Console.ReadLine();
+
+            var bookToReturn = books.FirstOrDefault(b => b.Title.Equals(title, StringComparison.OrdinalIgnoreCase) && b.IsBorrowed);
+            if (bookToReturn != null)
+            {
+                bookToReturn.IsBorrowed = false;
+                SaveBooks();
+                Console.WriteLine($"\nYou have returned \"{bookToReturn.Title}\".");
+            }
+            else
+            {
+                Console.WriteLine("\nSorry, this book was not borrowed or does not exist.");
+            }
+        }
+    }
+
+    class Book
+    {
+        public string Title { get; set; }
+        public string Author { get; set; }
+        public bool IsBorrowed { get; set; }
+
+        public Book(string title, string author, bool isBorrowed)
+        {
+            Title = title;
+            Author = author;
+            IsBorrowed = isBorrowed;
+        }
+
+        public override string ToString()
+        {
+            return $"Title: {Title}, Author: {Author}, Borrowed: {(IsBorrowed ? "Yes" : "No")}";
+        }
+    }
+}
