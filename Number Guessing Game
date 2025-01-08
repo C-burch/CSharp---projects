@@ -1,0 +1,54 @@
+using system;
+
+public class NumberGuessingGame
+{
+    public static void Main(string[] args)
+    {
+        // Creates random number
+        Random random = new Random();
+
+        //Generate a random number between 1-100 
+        int numberToGuess = random.Next(1, 101);
+
+        //tracks attempts and user guess
+        int attempts = 0;
+        int playerGuess = 0; 
+
+        Console.Writeline("Welcome to my Number Guessing Game!");
+        Console.WriteLine("I have selected a number between 1 - 100");
+        Console.WriteLine("Try to guess the number!")
+
+        //starts the guessing loop
+        while (playerGuess != numberToGuess)
+        {
+            Console.WriteLine("Enter your guess: ");
+
+            //Read and parse user input
+            string input = Console.ReadLine();
+            bool isValidInput = int.tryParse(input, out playerGuess);
+
+            if (!isValidInput)
+            {
+                Console.WriteLine("Please enter a valid number.");
+                continue;
+
+                attempts++;
+
+                //Feedback on user guess to random number
+                if(playerGuess < numberToGuess)
+                {
+                    Console.Writeline("Guess too low. Try again!");
+    
+                }
+                else if (playerGuess > numberToGuess)
+                {
+                    Console.WriteLine("Your guess is too high. Try again")
+                }
+            }
+
+
+        } 
+        //loop exits when user has guessed the correct number
+        Console.Writeline($"Congratulations, You've guessed the number{numbertoGuess} in {attempts} attempts.")
+    }
+}
