@@ -1,0 +1,198 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
+
+namespace StudentManagement
+{
+    // Student class to represent a student with properties
+    public class Student
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int Age { get; set; }
+        public double Grade { get; set; }
+
+        public Student(int id, string name, int age, double grade)
+        {
+            Id = id;
+            Name = name;
+            Age = age;
+            Grade = grade;
+        }
+
+        // Method to display student information
+        public override string ToString()
+        {
+            return $"ID: {Id}, Name: {Name}, Age: {Age}, Grade: {Grade:F2}";
+        }
+    }
+
+    // StudentManager class to manage students (CRUD operations)
+    public class StudentManager
+    {
+        private List<Student> students = new List<Student>();
+
+        // Add new student
+        public void AddStudent(Student student)
+        {
+            students.Add(student);
+        }
+
+        // List students
+        public void ListStudents()
+        {
+            Console.WriteLine("\n--- List of Students ---");
+            if (students.Count == 0)
+            {
+                Console.WriteLine("No students found.");
+                return;
+            }
+
+            foreach (var student in students)
+            {
+                Console.WriteLine(student);
+            }
+        }
+
+        // Search for students by name
+        public void SearchStudentsByName(string name)
+        {
+            var foundStudents = students.Where(s => s.Name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
+            Console.WriteLine("\n--- Search Results ---");
+            if (foundStudents.Count == 0)
+            {
+                Console.WriteLine("No students found with the name: " + name);
+                return;
+            }
+
+            foreach (var student in foundStudents)
+            {
+                Console.WriteLine(student);
+            }
+        }
+
+        // Save students to a file
+        public void SaveToFile(string fileName)
+        {
+            using (StreamWriter writer = new StreamWriter(fileName))
+            {
+                foreach (var student in students)
+                {
+                    writer.WriteLine($"{student.Id},{student.Name},{student.Age},{student.Grade}");
+                }
+            }
+            Console.WriteLine("Students saved to file successfully.");
+        }
+
+        // Load students from a file
+        public void LoadFromFile(string fileName)
+        {
+            if (!File.Exists(fileName))
+            {
+                Console.WriteLine("No data file found.");
+                return;
+            }
+
+            students.Clear();
+            foreach (var line in File.ReadLines(fileName))
+            {
+                var parts = line.Split(',');
+                if (parts.Length == 4)
+                {
+                    try
+                    {
+                        int id = int.Parse(parts[0]);
+                        string name = parts[1];
+                        int age = int.Parse(parts[2]);
+                        double grade = double.Parse(parts[3]);
+                        students.Add(new Student(id, name, age, grade));
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine("Skipping invalid data in file.");
+                    }
+                }
+            }
+            Console.WriteLine("Students loaded from file successfully.");
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var studentManager = new StudentManager();
+
+            // Load students from file on startup
+            studentManager.LoadFromFile("students.txt");
+
+            while (true)
+            {
+                Console.WriteLine("\nStudent Management System");
+                Console.WriteLine("1. Add Student");
+                Console.WriteLine("2. List Students");
+                Console.WriteLine("3. Search Students");
+                Console.WriteLine("4. Save Students");
+                Console.WriteLine("5. Exit");
+                Console.Write("Enter your choice: ");
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        // Add a student
+                        try
+                        {
+                            Console.Write("Enter Student ID: ");
+                            int id = int.Parse(Console.ReadLine());
+
+                            Console.Write("Enter Student Name: ");
+                            string name = Console.ReadLine();
+
+                            Console.Write("Enter Student Age: ");
+                            int age = int.Parse(Console.ReadLine());
+
+                            Console.Write("Enter Student Grade: ");
+                            double grade = double.Parse(Console.ReadLine());
+
+                            var newStudent = new Student(id, name, age, grade);
+                            studentManager.AddStudent(newStudent);
+                            Console.WriteLine("Student added successfully.");
+                        }
+                        catch (FormatException)
+                        {
+                            Console.WriteLine("Invalid input. Please enter correct data.");
+                        }
+                        break;
+
+                    case "2":
+                        // List all students
+                        studentManager.ListStudents();
+                        break;
+
+                    case "3":
+                        // Search for students by name
+                        Console.Write("Enter student name to search: ");
+                        string searchName = Console.ReadLine();
+                        studentManager.SearchStudentsByName(searchName);
+                        break;
+
+                    case "4":
+                        // Save students to a file
+                        studentManager.SaveToFile("students.txt");
+                        break;
+
+                    case "5":
+                        // Exit the program
+                        Console.WriteLine("Exiting program...");
+                        return;
+
+                    default:
+                        Console.WriteLine("Invalid choice. Please try again.");
+                        break;
+                }
+            }
+        }
+    }
+}
