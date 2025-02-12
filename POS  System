@@ -1,0 +1,124 @@
+using System;
+using System.Collections.Generic;
+
+namespace TillSystem
+{
+    public class Product
+    {
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public int Stock { get; set; }
+
+        public Product(string name, decimal price, int stock)
+        {
+            Name = name;
+            Price = price;
+            Stock = stock;
+        }
+    }
+
+    public class Till
+    {
+        private List<Product> _products;
+
+        public Till()
+        {
+            _products = new List<Product>
+            {
+                new Product("Apple", 0.99m, 50),
+                new Product("Banana", 1.20m, 30),
+                new Product("Milk", 1.50m, 20),
+                new Product("Bread", 2.00m, 15)
+            };
+        }
+
+        public void DisplayProducts()
+        {
+            Console.WriteLine("Available Products:");
+            foreach (var product in _products)
+            {
+                Console.WriteLine($"{product.Name} - ${product.Price} (Stock: {product.Stock})");
+            }
+        }
+
+        public void ProcessSale()
+        {
+            decimal totalAmount = 0;
+            Console.WriteLine("Enter products to purchase (type 'done' when finished):");
+            
+            while (true)
+            {
+                Console.Write("Enter product name: ");
+                string productName = Console.ReadLine();
+
+                if (productName.ToLower() == "done")
+                    break;
+
+                var product = _products.Find(p => p.Name.ToLower() == productName.ToLower());
+
+                if (product != null && product.Stock > 0)
+                {
+                    totalAmount += product.Price;
+                    product.Stock--;  // Decrease stock after purchase
+                    Console.WriteLine($"Added {product.Name} to your cart. Price: ${product.Price}");
+                }
+                else
+                {
+                    Console.WriteLine("Product not available or out of stock.");
+                }
+            }
+
+            Console.WriteLine($"\nTotal amount due: ${totalAmount}");
+
+            Console.Write("Enter payment amount: ");
+            decimal payment = decimal.Parse(Console.ReadLine());
+
+            if (payment >= totalAmount)
+            {
+                decimal change = payment - totalAmount;
+                Console.WriteLine($"Payment successful! Your change: ${change}");
+            }
+            else
+            {
+                Console.WriteLine("Insufficient payment. Transaction cancelled.");
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Till till = new Till();
+            bool running = true;
+
+            while (running)
+            {
+                Console.WriteLine("\n--- Till System ---");
+                Console.WriteLine("1. Display Products");
+                Console.WriteLine("2. Process Sale");
+                Console.WriteLine("3. Exit");
+                Console.Write("Select an option: ");
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        till.DisplayProducts();
+                        break;
+                    case "2":
+                        till.ProcessSale();
+                        break;
+                    case "3":
+                        running = false;
+                        Console.WriteLine("Exiting system...");
+                        break;
+                    default:
+                        Console.WriteLine("Invalid option, please try again.");
+                        break;
+                }
+            }
+        }
+    }
+}
+
